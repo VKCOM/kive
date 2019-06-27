@@ -2,10 +2,10 @@ package noop_api
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/VKCOM/kive/ktypes"
 	"github.com/VKCOM/kive/worker"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 )
 

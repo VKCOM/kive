@@ -2,12 +2,12 @@ package hls_server
 
 import (
 	"fmt"
+	"github.com/VKCOM/kive/ktypes"
+	"github.com/VKCOM/kive/vsync"
 	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/VKCOM/kive/ktypes"
-	"github.com/VKCOM/kive/vsync"
 	"io"
 	"net/http"
 	"net/http/pprof"

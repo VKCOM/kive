@@ -1,8 +1,8 @@
 package kfs
 
 import (
-	"github.com/pkg/errors"
 	"github.com/VKCOM/kive/ktypes"
+	"github.com/pkg/errors"
 	"io"
 	"time"
 )

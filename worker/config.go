@@ -2,11 +2,11 @@ package worker
 
 import (
 	"github.com/VKCOM/joy4/format/rtmp"
-	"github.com/sirupsen/logrus"
 	"github.com/VKCOM/kive/hls_server"
 	"github.com/VKCOM/kive/kfs"
 	"github.com/VKCOM/kive/ktypes"
 	"github.com/VKCOM/kive/rtmp_server"
+	"github.com/sirupsen/logrus"
 )
 
 const (

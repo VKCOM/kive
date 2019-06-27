@@ -11,6 +11,10 @@ type RtmpServerConfig struct {
 	publishRegexp *regexp.Regexp
 }
 
+func (rs *RtmpServerConfig) Prepare() {
+	rs.publishRegexp = regexp.MustCompile(rs.PublishPrefix)
+}
+
 func NewRtmpServerConfig() RtmpServerConfig {
 	res := RtmpServerConfig{
 		RtmpHost: "",
@@ -18,7 +22,7 @@ func NewRtmpServerConfig() RtmpServerConfig {
 
 		PublishPrefix: "/(?P<app>.*)/(?P<incoming_stream_name>[^?]*)",
 	}
-	res.publishRegexp = regexp.MustCompile(res.PublishPrefix)
+	res.Prepare()
 
 	return res
 }

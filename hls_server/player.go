@@ -1,8 +1,8 @@
 package hls_server
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/VKCOM/kive/kassets"
+	"github.com/sirupsen/logrus"
 	"html/template"
 	"io"
 )
