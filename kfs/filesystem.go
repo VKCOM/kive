@@ -14,10 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/VKCOM/kive/ktypes"
 	"github.com/google/btree"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/VKCOM/kive/ktypes"
 )
 
 const (

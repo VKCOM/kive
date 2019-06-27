@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/VKCOM/kive/kfs"
 	"github.com/VKCOM/kive/ktypes"
+	"github.com/stretchr/testify/require"
 )
 
 type KfsTestsSuite struct {
