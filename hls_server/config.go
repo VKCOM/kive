@@ -73,7 +73,7 @@ func (c *LiveHlsConfig) HandleLivePlayerUrl() string {
 func NewLiveHlsConfig() LiveHlsConfig {
 	c := LiveHlsConfig{
 		HttpHost: "",
-		HttpPort: 80,
+		HttpPort: 8080,
 
 		AbrStreamPrefix:       "/{stream_type:source|256p|352p|360p|384p|480p|512p|720p|1080p}",
 		AbrStreamMasterPrefix: "/{app:kiveabr}/{stream_name:[0-9a-zA-Z_-]+}",
