@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
+	"github.com/sirupsen/logrus"
 	"github.com/VKCOM/kive/ktypes"
 	"github.com/VKCOM/kive/noop_api"
 	"github.com/VKCOM/kive/worker"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"

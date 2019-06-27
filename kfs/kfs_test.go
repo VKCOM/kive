@@ -4,15 +4,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/VKCOM/kive/kfs"
-	"github.com/VKCOM/kive/ktypes"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	"github.com/VKCOM/kive/kfs"
+	"github.com/VKCOM/kive/ktypes"
 )
 
 type KfsTestsSuite struct {
@@ -20,6 +21,7 @@ type KfsTestsSuite struct {
 	segments *kfs.Filesystem
 	path     string
 	tpl      ktypes.ChunkInfo
+	inMemory bool
 }
 
 func (s *KfsTestsSuite) SetupTest() {
@@ -30,7 +32,12 @@ func (s *KfsTestsSuite) SetupTest() {
 	s.path = path
 	config := kfs.NewKfsConfig()
 	config.RemovalTime = 0
-	config.Basedir = path
+	if s.inMemory {
+		config.Basedir = kfs.INMEMORY
+		config.RemovalTime = 0
+	} else {
+		config.Basedir = path
+	}
 	s.segments, err = kfs.NewFilesystem(config)
 	if err != nil {
 		panic("Cannot run test")
@@ -159,5 +166,6 @@ func TestStorageTestsSuiteAll(t *testing.T) {
 
 func TestStorageTestsSuiteInMemory(t *testing.T) {
 	is := new(KfsTestsSuite)
+	is.inMemory = true
 	suite.Run(t, is)
 }
