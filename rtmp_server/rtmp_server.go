@@ -6,11 +6,11 @@ import (
 
 	"github.com/VKCOM/joy4/format/flv"
 	"github.com/VKCOM/joy4/format/rtmp"
-	"github.com/VKCOM/kive/ktypes"
-	"github.com/VKCOM/kive/vsync"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/VKCOM/kive/ktypes"
+	"github.com/VKCOM/kive/vsync"
 	"runtime/debug"
 	"time"
 )
@@ -72,9 +72,6 @@ func NewRtmpServer(config RtmpServerConfig) (*RtmpServer, error) {
 
 	rtmpServer.HandlePublish = func(conn *rtmp.Conn) {
 		defer func() {
-			if ktypes.Recover == false {
-				return
-			}
 			if r := recover(); r != nil {
 				logrus.Errorf("%s: %s", r, debug.Stack())
 			}

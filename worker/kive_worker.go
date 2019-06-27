@@ -223,13 +223,20 @@ func (w *Worker) handleLiveChunk(r *hls_server.LiveChunkRequest) (hls_server.Htt
 	}, nil
 }
 func (w *Worker) handleDvrPlayList(r *hls_server.DvrPlaylistRequest) (hls_server.HttpResponse, error) {
+	fromUnixMs := ktypes.UnixMs(r.From * 1000)
+	toUnixMs := ktypes.UnixMs(r.From*1000 + r.Duration*1000)
 	if r.StreamType == "" && (r.Application == "kiveabr") {
-		return w.handleMasterPlaylist(r.StreamName, w.hlsServer.BuildDvrChunksPlaylist(r))
+		res, err := w.storage.Md.Walk(r.StreamName, w.sizeToStreamType[w.getLowestTranscoderSize()], fromUnixMs, toUnixMs)
+		if err != nil || len(res) == 0 {
+			r.StreamType = string(ktypes.SOURCE)
+		} else {
+			return w.handleMasterPlaylist(r.StreamName, w.hlsServer.BuildDvrChunksPlaylist(r))
+		}
 	} else if r.Application != "kiveabr" {
 		r.StreamType = string(ktypes.SOURCE)
 	}
 
-	res, err := w.storage.Md.Walk(r.StreamName, ktypes.StreamType(r.StreamType), ktypes.UnixMs(r.From*1000), ktypes.UnixMs(r.From*1000+r.Duration*1000))
+	res, err := w.storage.Md.Walk(r.StreamName, ktypes.StreamType(r.StreamType), fromUnixMs, toUnixMs)
 	if err != nil {
 		return hls_server.HttpResponse{HttpStatus: http.StatusNotFound}, errors.Wrap(err, "bad params")
 	}
@@ -392,9 +399,15 @@ func (w *Worker) handlePublish(request *rtmp_server.PublishRequest) error {
 
 		demux := request.Data
 
-		for _, demuxer := range demuxers {
+		for idx := range demuxers {
 			request.Application = "live"
-			go w.handlePublishInner(demuxer, ktypes.StreamType(demuxer.Desc()), request, actualSizes)
+			demuxer := demuxers[idx]
+			go func() {
+				err := w.handlePublishInner(demuxer, ktypes.StreamType(demuxer.Desc()), request, actualSizes)
+				if err != nil {
+					logrus.WithField("stream_name", request.StreamName).Errorf("cannot write chunk in demuxer %s: %+v", demuxer.Desc(), err)
+				}
+			}()
 		}
 		return avutil.CopyPackets(transcoder, demux)
 	default:
@@ -542,7 +555,7 @@ func (w *Worker) getLowestTranscoderSize() int {
 }
 
 func (w *Worker) ComposeFullMediaPlaylistName(streamName, playlistSufix string, size int) string {
-	return fmt.Sprintf("%s/%s/%s", streamName, w.sizeToStreamType[size], playlistSufix)
+	return fmt.Sprintf("%s/%s", w.sizeToStreamType[size], playlistSufix)
 }
 
 func hasVideoSize(desiredSize int, sizes []int) bool {

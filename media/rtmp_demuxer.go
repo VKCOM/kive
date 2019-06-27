@@ -87,7 +87,7 @@ func (kf *keyFrameChunker) ReadPacket() (av.Packet, error) {
 			return pk, errors.Wrap(err, "error on reading")
 		}
 
-		if !kf.isVideo(&pk) || pk.Time == pk.CompositionTime {
+		if !kf.isVideo(&pk) {
 			kf.lastTs = pk.Time
 		}
 		return pk, nil
@@ -119,7 +119,7 @@ func (kf *keyFrameChunker) ReadPacket() (av.Packet, error) {
 			return pk, io.EOF
 		}
 
-		if !kf.isVideo(&pk) || pk.Time == pk.CompositionTime {
+		if !kf.isVideo(&pk) {
 			kf.currentDuration = pk.Time - kf.lastTs
 		}
 

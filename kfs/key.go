@@ -2,8 +2,8 @@ package kfs
 
 import (
 	"fmt"
-	"github.com/VKCOM/kive/ktypes"
 	"github.com/pkg/errors"
+	"github.com/VKCOM/kive/ktypes"
 	"regexp"
 	"sort"
 	"strings"

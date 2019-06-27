@@ -18,11 +18,11 @@ type DvrPlaylistRequest struct {
 }
 
 type ChunkRequest struct {
-	Application     string `mapstructure:"app",json:"application"`
-	StreamName      string `mapstructure:"stream_name",json:"stream_name"`
-	StreamNameChunk string `mapstructure:"stream_name_chunk",json:"stream_chunk_name"`
-	ChunkName       string `mapstructure:"chunk_name",json:"chunk_name"`
-	ViewSalt        string `mapstructure:"view_salt",json:"-"`
+	Application     string `mapstructure:"app" json:"application"`
+	StreamName      string `mapstructure:"stream_name" json:"stream_name"`
+	StreamNameChunk string `mapstructure:"stream_name_chunk" json:"stream_chunk_name"`
+	ChunkName       string `mapstructure:"chunk_name" json:"chunk_name"`
+	ViewSalt        string `mapstructure:"view_salt" json:"-"`
 }
 
 type LiveChunkRequest ChunkRequest

@@ -11,8 +11,9 @@ import (
 type StreamType string
 
 const (
-	SOURCE           StreamType = "source"
-	DEFAULT_DURATION            = 4 * time.Second
+	SOURCE            StreamType = "source"
+	DEFAULT_DURATION             = 4 * time.Second
+	SECURTIY_HR_LIMIT            = 50
 )
 
 type UnixMs int64
@@ -48,6 +49,10 @@ func HoursRange(from, to UnixMs) []string {
 
 	result := make([]string, 0)
 	if fromHr > toHr {
+		return nil
+	}
+
+	if toHr-fromHr > SECURTIY_HR_LIMIT {
 		return nil
 	}
 

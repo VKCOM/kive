@@ -13,8 +13,9 @@ type RtmpServerConfig struct {
 
 func NewRtmpServerConfig() RtmpServerConfig {
 	res := RtmpServerConfig{
-		RtmpHost:      "",
-		RtmpPort:      1935,
+		RtmpHost: "",
+		RtmpPort: 1935,
+
 		PublishPrefix: "/(?P<app>.*)/(?P<incoming_stream_name>[^?]*)",
 	}
 	res.publishRegexp = regexp.MustCompile(res.PublishPrefix)

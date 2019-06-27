@@ -3,10 +3,6 @@ package kfs
 import (
 	"bytes"
 	"fmt"
-	"github.com/VKCOM/kive/ktypes"
-	"github.com/google/btree"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -17,6 +13,15 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/google/btree"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/VKCOM/kive/ktypes"
+)
+
+const (
+	INMEMORY = "memory"
 )
 
 type Filesystem struct {
@@ -47,22 +52,24 @@ func (bi *bufferItem) Less(rhs btree.Item) bool {
 }
 
 func NewFilesystem(config KfsConfig) (*Filesystem, error) {
-	basedir, err := filepath.EvalSymlinks(config.Basedir)
+	if config.Basedir != INMEMORY {
+		basedir, err := filepath.EvalSymlinks(config.Basedir)
 
-	if err != nil {
-		return nil, errors.Errorf("cannot evaluate symlinks %s", basedir)
+		if err != nil {
+			return nil, errors.Errorf("cannot evaluate symlinks %s", basedir)
+		}
+
+		if !filepath.IsAbs(basedir) {
+			return nil, errors.Errorf("not abs path %s", basedir)
+		}
+
+		err = os.MkdirAll(basedir, os.ModePerm)
+
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot create directory %s", basedir)
+		}
+		config.Basedir = filepath.Clean(config.Basedir)
 	}
-
-	if !filepath.IsAbs(basedir) {
-		return nil, errors.Errorf("not abs path %s", basedir)
-	}
-
-	err = os.MkdirAll(basedir, os.ModePerm)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "cannot create directory %s", basedir)
-	}
-	config.Basedir = filepath.Clean(config.Basedir)
 
 	fs := &Filesystem{
 		config:         config,
@@ -74,7 +81,9 @@ func NewFilesystem(config KfsConfig) (*Filesystem, error) {
 		Md:             NewMetadata(config),
 	}
 
-	go fs.writerGoroutine()
+	if config.Basedir != INMEMORY {
+		go fs.writerGoroutine()
+	}
 
 	if config.RemovalTime != 0 {
 		go fs.cleanUpGoroutine()
@@ -103,7 +112,7 @@ func (fs *Filesystem) Delete(ci ktypes.ChunkInfo) error {
 	err := validateStorageInfo(key)
 
 	if err != nil {
-		return errors.Wrapf(err, "invalid chunk info %s", key)
+		return errors.Wrapf(err, "invalid chunk info %+v", key)
 	}
 
 	fs.deleteFromBuffer(key)
@@ -121,12 +130,12 @@ func (fs *Filesystem) Reader(ci ktypes.ChunkInfo) (io.ReadCloser, error) {
 	err := validateStorageInfo(key)
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "cannot get reader %s", key)
+		return nil, errors.Wrapf(err, "cannot get reader %+v", key)
 	}
 
 	reader, err := fs.readerBuffer(key)
 	if err != nil {
-		return nil, errors.Wrapf(err, "cannot get reader %s", key)
+		return nil, errors.Wrapf(err, "cannot get reader %+v", key)
 	}
 	if reader != nil {
 		return reader, nil
@@ -143,9 +152,11 @@ func (fs *Filesystem) Writer(ch ktypes.ChunkInfo) (*Writer, error) {
 		return nil, errors.Wrapf(err, "cannot get writer %+v", key)
 	}
 
-	err = os.MkdirAll(fs.config.buildDirPath(key), os.ModePerm)
-	if err != nil {
-		return nil, errors.Wrapf(err, "cannot create dir for  %+v", key)
+	if fs.config.Basedir != INMEMORY {
+		err = os.MkdirAll(fs.config.buildDirPath(key), os.ModePerm)
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot create dir for  %+v", key)
+		}
 	}
 
 	maxQueueSize := fs.config.MaxSize
@@ -166,7 +177,7 @@ func (fs *Filesystem) Writer(ch ktypes.ChunkInfo) (*Writer, error) {
 	item := fs.buffers.Get(bufi)
 
 	if item != nil {
-		return nil, errors.Errorf("already writenn %s", key)
+		return nil, errors.Errorf("already written %+v", key)
 	}
 
 	fs.buffers.ReplaceOrInsert(bufi)
@@ -179,6 +190,9 @@ func (fs *Filesystem) WriteMeta(key ktypes.ChunkInfo) error {
 }
 
 func (fs *Filesystem) fileReader(fullname string) (io.ReadCloser, error) {
+	if fs.config.Basedir == INMEMORY {
+		return nil, errors.Errorf("cannot get file reader %s", fullname)
+	}
 	b, err := ioutil.ReadFile(fullname)
 
 	if err != nil {
@@ -227,7 +241,12 @@ func (fs *Filesystem) eraseBuffer(bufi *bufferItem) error {
 func (fs *Filesystem) finalizeWriter(bufi *bufferItem) error {
 	err := bufi.queue.Close()
 	if err != nil {
-		return errors.Wrapf(err, "cannot finalize writer %s", bufi)
+		return errors.Wrapf(err, "cannot finalize writer %+v", bufi)
+	}
+
+	if fs.config.Basedir == INMEMORY {
+		fs.finalizerWriters.Done()
+		return nil
 	}
 
 	fs.m.Lock()
