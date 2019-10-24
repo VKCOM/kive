@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/VKCOM/kive/kfs"
 	"github.com/VKCOM/kive/ktypes"
+	"github.com/stretchr/testify/require"
 )
 
 type KfsTestsSuite struct {
@@ -31,10 +31,10 @@ func (s *KfsTestsSuite) SetupTest() {
 	}
 	s.path = path
 	config := kfs.NewKfsConfig()
-	config.RemovalTime = 0
+	config.RemovalTime.Duration = 0
 	if s.inMemory {
 		config.Basedir = kfs.INMEMORY
-		config.RemovalTime = 0
+		config.RemovalTime.Duration = 0
 	} else {
 		config.Basedir = path
 	}

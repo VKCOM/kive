@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/VKCOM/kive/ktypes"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
-	"github.com/VKCOM/kive/ktypes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -109,7 +109,7 @@ func (md *Metadata) fetchManifest(streamName, sourceName, hour string) ([]ktypes
 	defer md.m.RUnlock()
 	value = md.infoCache.Get(ktypes.ComposeHourKeyCache(streamName, sourceName, hour))
 	if value != nil {
-		md.infoCache.Set(ktypes.ComposeHourKeyCache(streamName, sourceName, hour), &result, md.config.RemovalTime-2*time.Hour)
+		md.infoCache.Set(ktypes.ComposeHourKeyCache(streamName, sourceName, hour), &result, md.config.RemovalTime.Duration-2*time.Hour)
 	}
 	return result, nil
 }
@@ -187,7 +187,7 @@ func (md *Metadata) writeFsInfo(key innerStorage, fullname string) error {
 
 	md.m.Lock()
 	defer md.m.Unlock()
-	md.infoCache.Set(ktypes.ComposeHourKeyCache(key.StreamName, string(key.StreamType), key.HourString()), &updatedChunkInfoList, md.config.RemovalTime-2*time.Hour)
+	md.infoCache.Set(ktypes.ComposeHourKeyCache(key.StreamName, string(key.StreamType), key.HourString()), &updatedChunkInfoList, md.config.RemovalTime.Duration-2*time.Hour)
 	return nil
 }
 
@@ -200,7 +200,7 @@ func (md *Metadata) writeFsInfoFallback(key innerStorage, fullname string) error
 	if err := ioutil.WriteFile(fmt.Sprintf("%s.json", fullname), jBytes, os.ModePerm); err != nil {
 		return errors.Wrap(err, "cannot write meta")
 	}
-	md.infoCache.Set(fullname, &key, md.config.RemovalTime-2*time.Hour)
+	md.infoCache.Set(fullname, &key, md.config.RemovalTime.Duration-2*time.Hour)
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (md *Metadata) readFsInfo(key innerStorage, fullname string) (*innerStorage
 	if err != nil {
 		return &jData, errors.Wrap(err, "cannot unmarshal")
 	}
-	md.infoCache.Set(fullname, &key, time.Duration(key.Ts)-md.config.RemovalTime-2*time.Hour)
+	md.infoCache.Set(fullname, &key, time.Duration(key.Ts)-md.config.RemovalTime.Duration-2*time.Hour)
 	return &jData, nil
 }
 

@@ -2,13 +2,23 @@ package kfs
 
 import "time"
 
+type duration struct {
+	time.Duration
+}
+
+func (d *duration) UnmarshalText(text []byte) (err error) {
+	d.Duration, err = time.ParseDuration(string(text))
+
+	return
+}
+
 type KfsConfig struct {
 	Basedir       string
 	MaxSize       int
 	MaxSourceSize int
-	RemovalTime   time.Duration
+	RemovalTime   duration
 	MaxCacheSize  int64
-	WriteTimeout  time.Duration
+	WriteTimeout  duration
 }
 
 func NewKfsConfig() KfsConfig {
@@ -16,8 +26,8 @@ func NewKfsConfig() KfsConfig {
 		Basedir:       "/tmp/kive/",
 		MaxSize:       1024 * 1024 * 20,
 		MaxSourceSize: 1024 * 1024 * 80,
-		RemovalTime:   24*1*time.Hour + 14*time.Hour,
+		RemovalTime:   duration{24*1*time.Hour + 14*time.Hour},
 		MaxCacheSize:  5000000,
-		WriteTimeout:  1 * time.Second,
+		WriteTimeout:  duration{1 * time.Second},
 	}
 }
