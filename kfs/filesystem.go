@@ -14,10 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/VKCOM/kive/ktypes"
 	"github.com/google/btree"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/VKCOM/kive/ktypes"
 )
 
 const (
@@ -85,7 +85,7 @@ func NewFilesystem(config KfsConfig) (*Filesystem, error) {
 		go fs.writerGoroutine()
 	}
 
-	if config.RemovalTime != 0 {
+	if config.RemovalTime.Duration != 0 {
 		go fs.cleanUpGoroutine()
 	}
 
@@ -262,7 +262,7 @@ func (fs *Filesystem) finalizeWriter(bufi *bufferItem) error {
 	case fs.writeQueue <- bufi:
 		ktypes.Stat(false, "disk_write", "done", "")
 		return nil
-	case <-time.After(fs.config.WriteTimeout):
+	case <-time.After(fs.config.WriteTimeout.Duration):
 		ktypes.Stat(true, "disk_write", "first_timeout", "")
 	}
 
@@ -425,7 +425,7 @@ func (fs *Filesystem) cleanUpGoroutine() {
 	for {
 		free, _ := diskFree(fs.config.Basedir)
 		now := time.Now()
-		latestRemoval := now.Add(-fs.config.RemovalTime)
+		latestRemoval := now.Add(-fs.config.RemovalTime.Duration)
 		latestRemovalString := ktypes.HourString(ktypes.TimeToMillis(latestRemoval))
 
 		logrus.Debugf("Walk started %+v free %+v removal after %+v", fs.config.Basedir, free, latestRemovalString)
