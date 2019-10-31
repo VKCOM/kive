@@ -14,10 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/VKCOM/kive/ktypes"
 	"github.com/google/btree"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/VKCOM/kive/ktypes"
 )
 
 const (
@@ -443,13 +443,15 @@ func (fs *Filesystem) cleanUpGoroutine() {
 				time.Sleep(1 * time.Second)
 				streamTypes, err := readDirNames(path.Join(fs.config.Basedir, streamName))
 				if err != nil {
-					return errors.Wrap(err, "cannot get stream list")
+					logrus.Errorf("Cannot read dir %+v ", err)
+					continue
 				}
+
 				for _, streamType := range streamTypes {
 					err := walkStream(streamName, streamType, latestRemovalString)
 					ktypes.Stat(err != nil, "removal_check", "walk_stream", "")
 					if err != nil {
-						logrus.Errorf("cannon delete %+v ", err)
+						logrus.Errorf("Cannot delete %+v ", err)
 					}
 				}
 			}
