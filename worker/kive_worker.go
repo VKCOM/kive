@@ -416,10 +416,6 @@ func (w *Worker) handlePublish(request *rtmp_server.PublishRequest) error {
 }
 
 func (w *Worker) handlePublishInner(demux av.DemuxCloser, streamType ktypes.StreamType, request *rtmp_server.PublishRequest, actualSizes []int) error {
-	if !request.StreamHandler.AllowStreaming() {
-		return errors.Errorf("Streaming is forbidden %+v ", request)
-	}
-
 	chunker := media.NewSegmentDemuxer(demux, 3100*time.Millisecond)
 
 	streamToSeqId := make(map[int]int64)
@@ -433,6 +429,10 @@ func (w *Worker) handlePublishInner(demux av.DemuxCloser, streamType ktypes.Stre
 	keyOut := &key
 
 	for {
+		if !request.StreamHandler.AllowStreaming() {
+			return errors.Errorf("Streaming is forbidden %+v ", request)
+		}
+
 		keyOut, err := w.writeChunk(keyOut, request, chunker)
 		if err == nil && keyOut != nil {
 			w.writeVirtualChunk(*keyOut, streamToSeqId, virtualStreams)
