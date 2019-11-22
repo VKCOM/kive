@@ -7,6 +7,7 @@ type LivePlaylistRequest struct {
 	StreamName  string `mapstructure:"stream_name"`
 	ViewSalt    string `mapstructure:"view_salt"`
 	StreamType  string `mapstructure:"stream_type"`
+	Offset      int    `mapstructure:"offset"`
 }
 
 type DvrPlaylistRequest struct {

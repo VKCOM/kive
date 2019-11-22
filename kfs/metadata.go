@@ -68,6 +68,19 @@ func (md *Metadata) GetAllChunksInfo(streamName string, from, to ktypes.UnixMs) 
 	return result, nil
 }
 
+func (md *Metadata) GetFirst(streamName, sourceType string, count int, timeOffset ktypes.UnixMs) (ktypes.SChunkInfo, error) {
+	timeMs := ktypes.UnixMs(time.Duration(time.Now().Unix() * 1000))
+	chunks, err := md.getMetadata(streamName, sourceType, timeMs-timeOffset, timeMs)
+	if err != nil {
+		return nil, err
+	}
+	if len(chunks) > count {
+		return append(ktypes.SChunkInfo{}, chunks[:count]...), nil
+	} else {
+		return chunks, nil
+	}
+}
+
 func (md *Metadata) GetLast(streamName, sourceType string, count int, timeoutLimit ktypes.UnixMs) (ktypes.SChunkInfo, error) {
 	timeMs := ktypes.UnixMs(time.Duration(time.Now().Unix() * 1000))
 	chunks, err := md.getMetadata(streamName, sourceType, timeMs-timeoutLimit, timeMs)

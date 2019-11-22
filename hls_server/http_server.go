@@ -207,7 +207,17 @@ func NewLiveHls(config LiveHlsConfig) (*LiveHls, error) {
 		lhls.handleReq(req, w, r)
 	}
 
+	httpRouter.Path(lhls.config.HandleLivePlaylistUrl()).Queries("vid", "{view_salt}", "offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrMasterPlaylistUrl()).Queries("vid", "{view_salt}", "offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrChunksPlaylistUrl()).Queries("vid", "{view_salt}", "offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+
+	httpRouter.Path(lhls.config.HandleLivePlaylistUrl()).Queries("offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrMasterPlaylistUrl()).Queries("offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrChunksPlaylistUrl()).Queries("offset", "{offset}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+
 	httpRouter.Path(lhls.config.HandleLivePlaylistUrl()).Queries("vid", "{view_salt}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrMasterPlaylistUrl()).Queries("vid", "{view_salt}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
+	httpRouter.Path(lhls.config.HandleAbrChunksPlaylistUrl()).Queries("vid", "{view_salt}").Name("LivePlaylistVid").HandlerFunc(livePlaylistHandler)
 
 	httpRouter.HandleFunc(lhls.config.HandleLivePlaylistUrl(), livePlaylistHandler).Name("LivePlaylist")
 	httpRouter.HandleFunc(lhls.config.HandleAbrChunksPlaylistUrl(), livePlaylistHandler).Name("LivePlaylist")
