@@ -158,8 +158,13 @@ func (w *Worker) handleLivePlayList(r *hls_server.LivePlaylistRequest) (hls_serv
 		return hls_server.HttpResponse{HttpStatus: http.StatusNotFound}, errors.Wrap(err, "cannot creale playlist")
 	}
 
-	res, err := w.storage.Md.GetFirst(r.StreamName, string(r.StreamType), livePlaylistLen, ktypes.UnixMs(r.Offset))
-	if len(res) == 0 ||  err != nil {
+	var res ktypes.SChunkInfo
+	if r.Offset != 0 {
+		res, err = w.storage.Md.GetFirst(r.StreamName, string(r.StreamType), livePlaylistLen, ktypes.UnixMs(r.Offset))
+		if len(res) == 0 || err != nil {
+			res, err = w.storage.Md.GetLast(r.StreamName, string(r.StreamType), livePlaylistLen, liveTimeoutLimit)
+		}
+	} else {
 		res, err = w.storage.Md.GetLast(r.StreamName, string(r.StreamType), livePlaylistLen, liveTimeoutLimit)
 	}
 
